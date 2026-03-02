@@ -26,3 +26,9 @@ if buyurtmalar: # ro'yxatda biror element bo'lsa bu ifoda TRUE qaytaradi
             print(f"Kechirasiz, menuda {taom} yo'q")
 else: # agar ro'yxat bo'sh bo'lsa
     print("Savatchangiz bo'sh!")
+
+employee={'ism':'muhammad','familiya':'norboev','t_yil':2001,'yosh':25}
+print(f"{employee['ism'].title()},\
+      {employee['familiya'].title()},\
+      {employee['t_yil']}-yilda tugilgan,\
+      {employee['yosh']} yoshda")
