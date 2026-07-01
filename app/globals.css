@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; background: radial-gradient(circle at top left, rgba(124,58,237,.22), transparent 35%), #070A13; color: white; }
+a { transition: opacity .2s ease, transform .2s ease; }
+a:hover, button:hover { opacity: .86; }
+button { transition: opacity .2s ease, transform .2s ease; }
