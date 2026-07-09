@@ -1,5 +1,7 @@
 'use client';
 
+'use client';
+
 import { useMemo, useState } from 'react';
 import { createProjectBlueprint } from '@/lib/blueprint';
 import { getSmartQuestions } from '@/lib/question-engine';
@@ -25,9 +27,9 @@ const defaultInput: BuilderInput = {
   evolutionTarget: 'SaaS App'
 };
 
-export function BuilderClient() {
+export function BuilderClient({ editId, initialInput }: { editId?: string; initialInput?: BuilderInput }) {
   const [step, setStep] = useState(0);
-  const [input, setInput] = useState<BuilderInput>(defaultInput);
+  const [input, setInput] = useState<BuilderInput>(initialInput ?? defaultInput);
   const [savedId, setSavedId] = useState<string>();
   const [saving, setSaving] = useState(false);
   const questions = useMemo(() => getSmartQuestions(input), [input]);
@@ -50,8 +52,10 @@ export function BuilderClient() {
 
   async function saveProject() {
     setSaving(true);
-    const response = await fetch('/api/projects', {
-      method: 'POST',
+    const url = editId ? `/api/projects/${editId}` : '/api/projects';
+    const method = editId ? 'PATCH' : 'POST';
+    const response = await fetch(url, {
+      method,
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify(input)
     });
@@ -70,7 +74,7 @@ export function BuilderClient() {
         <div className="mt-8 min-h-80"><QuestionInput question={currentQuestion} input={input} onChange={(value) => updateQuestion(currentQuestion, value)} /></div>
         <div className="mt-8 flex items-center justify-between">
           <button className="rounded-full bg-white/10 px-5 py-3" onClick={() => setStep(Math.max(0, step - 1))}>Back</button>
-          {step < questions.length - 1 ? <button className="rounded-full bg-white px-5 py-3 font-bold text-ink" onClick={() => setStep(step + 1)}>Next smart question</button> : <button className="rounded-full bg-aqua px-5 py-3 font-bold text-ink" onClick={saveProject}>{saving ? 'Saving...' : 'Save intent blueprint'}</button>}
+          {step < questions.length - 1 ? <button className="rounded-full bg-white px-5 py-3 font-bold text-ink" onClick={() => setStep(step + 1)}>Next smart question</button> : <button className="rounded-full bg-aqua px-5 py-3 font-bold text-ink" onClick={saveProject}>{saving ? 'Saving...' : editId ? 'Update project' : 'Save intent blueprint'}</button>}
         </div>
         {savedId && <p className="mt-4 text-sm text-aqua">Saved. <a className="underline" href={`/projects/${savedId}`}>Open project</a></p>}
       </section>

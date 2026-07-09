@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { useSession, signOut } from 'next-auth/react';
 
 const links = [
   { href: '/dashboard', label: 'Dashboard' },
@@ -8,6 +11,8 @@ const links = [
 ];
 
 export function Nav() {
+  const { data: session, status } = useSession();
+
   return (
     <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
       <Link href="/" className="text-2xl font-black tracking-tight">Codable</Link>
@@ -15,8 +20,22 @@ export function Nav() {
         {links.map((link) => <Link key={link.href} href={link.href}>{link.label}</Link>)}
       </div>
       <div className="flex items-center gap-3">
-        <Link href="/login" className="hidden text-sm text-white/70 sm:block">Sign in</Link>
-        <Link href="/builder" className="rounded-full bg-white px-5 py-2 font-semibold text-ink">Start</Link>
+        {status === 'loading' ? null : session ? (
+          <>
+            <span className="hidden text-sm text-white/70 sm:block">{session.user?.name || session.user?.email}</span>
+            <button
+              onClick={() => signOut({ callbackUrl: '/' })}
+              className="rounded-full bg-white px-5 py-2 font-semibold text-ink"
+            >
+              Sign out
+            </button>
+          </>
+        ) : (
+          <>
+            <Link href="/login" className="hidden text-sm text-white/70 sm:block">Sign in</Link>
+            <Link href="/signup" className="rounded-full bg-white px-5 py-2 font-semibold text-ink">Start</Link>
+          </>
+        )}
       </div>
     </nav>
   );

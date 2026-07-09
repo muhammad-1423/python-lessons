@@ -1,7 +1,59 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { signIn } from 'next-auth/react';
 import { Nav } from '@/components/Nav';
 
 export default function SignupPage() {
+  const router = useRouter();
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+     const response = await fetch('/api/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || 'Something went wrong');
+        setLoading(false);
+        return;
+      }
+
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false
+      });
+
+      if (result?.error) {
+        setError('Account created, but sign in failed. Please try signing in.');
+        setLoading(false);
+        return;
+      }
+
+      router.push('/dashboard');
+    } catch {
+      setError('Something went wrong');
+      setLoading(false);
+    }
+  }
+
   return (
     <main>
       <Nav />
@@ -9,13 +61,55 @@ export default function SignupPage() {
         <div className="rounded-[2rem] border border-white/10 bg-white/[0.07] p-8">
           <h1 className="text-4xl font-black">Create account</h1>
           <p className="mt-2 text-white/60">Start with the Free plan and 25 credits.</p>
-          <form className="mt-8 space-y-4">
-            <input className="w-full rounded-2xl bg-white p-4 text-ink" placeholder="Name" />
-            <input className="w-full rounded-2xl bg-white p-4 text-ink" placeholder="Email" type="email" />
-            <input className="w-full rounded-2xl bg-white p-4 text-ink" placeholder="Password" type="password" />
-            <button className="w-full rounded-full bg-aqua px-5 py-3 font-bold text-ink">Create workspace</button>
+
+          {error && (
+            <p className="mt-4 rounded-xl bg-red-500/20 p-3 text-sm text-red-300">{error}</p>
+          )}
+
+          <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
+            <input
+              className="w-full rounded-2xl bg-white p-4 text-ink"
+              placeholder="Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+            <input
+              className="w-full rounded-2xl bg-white p-4 text-ink"
+              placeholder="Email"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <div className="relative">
+              <input
+                className="w-full rounded-2xl bg-white p-4 pr-12 text-ink"
+                placeholder="Password"
+                type={showPassword ? 'text' : 'password'}
+                required
+                minLength={6}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-ink/60"
+              >
+                {showPassword ? 'Hide' : 'Show'}
+              </button>
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-full bg-aqua px-5 py-3 font-bold text-ink disabled:opacity-60"
+            >
+              {loading ? 'Creating…' : 'Create workspace'}
+            </button>
           </form>
-          <p className="mt-6 text-sm text-white/60">Already have an account? <Link className="text-aqua" href="/login">Sign in</Link></p>
+          <p className="mt-6 text-sm text-white/60">
+            Already have an account? <Link className="text-aqua" href="/login">Sign in</Link>
+          </p>
         </div>
       </section>
     </main>
