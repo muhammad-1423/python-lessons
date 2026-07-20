@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { getProject, saveGeneratedHtml } from '@/lib/projects-store';
+import { getProject, saveGeneratedHtmlWithVersion } from '@/lib/projects-store';
 import { generateLandingPageHtml } from '@/lib/ai-generate';
 
 export async function POST(_request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -19,7 +19,8 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
 
   try {
     const html = await generateLandingPageHtml(project.input);
-    await saveGeneratedHtml(id, html, userId);
+    const versionLabel = `Version ${new Date().toLocaleString()}`;
+    await saveGeneratedHtmlWithVersion(id, html, userId, versionLabel);
     return NextResponse.json({ html });
   } catch (error) {
     console.error('AI generation error:', error);

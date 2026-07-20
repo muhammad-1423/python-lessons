@@ -43,3 +43,33 @@ Requirements:
 
   return html;
 }
+export async function editLandingPageHtml(currentHtml: string, editInstruction: string): Promise<string> {
+  const prompt = `Here is an HTML landing page:
+
+\`\`\`html
+${currentHtml}
+\`\`\`
+
+Apply this exact change: "${editInstruction}"
+
+Instructions:
+1. Find the relevant CSS or HTML that controls what the user wants to change
+2. Modify ONLY that part
+3. Keep everything else in the page byte-for-byte identical
+4. Return the COMPLETE modified HTML document from <!DOCTYPE html> or <html> to </html>
+5. Do not add any explanation, markdown formatting, or code fences — output raw HTML only
+6. Make sure the change is clearly visible and actually applied — double check your output contains the requested change before responding`;
+
+  const message = await anthropic.messages.create({
+    model: 'claude-sonnet-4-5',
+    max_tokens: 8192,
+    messages: [{ role: 'user', content: prompt }]
+  });
+
+  const textBlock = message.content.find((block) => block.type === 'text');
+  let html = textBlock && textBlock.type === 'text' ? textBlock.text : '';
+
+  html = html.replace(/```html/g, '').replace(/```/g, '').trim();
+
+  return html;
+}

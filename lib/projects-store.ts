@@ -103,3 +103,44 @@ export async function saveGeneratedHtml(id: string, html: string, userId: string
   });
   return toStoredProject(row);
 }
+export async function saveGeneratedHtmlWithVersion(
+  id: string,
+  html: string,
+  userId: string,
+  label: string
+): Promise<StoredProject | null> {
+  const existing = await prisma.project.findFirst({ where: { id, userId } });
+  if (!existing) return null;
+
+  await prisma.projectVersion.create({
+    data: {
+      projectId: id,
+      label,
+      input: existing.input as object,
+      blueprint: { html } as unknown as object
+    }
+  });
+
+  const row = await prisma.project.update({
+    where: { id },
+    data: { generatedHtml: html }
+  });
+  return toStoredProject(row);
+}
+
+export async function listProjectVersions(projectId: string, userId: string) {
+  const project = await prisma.project.findFirst({ where: { id: projectId, userId } });
+  if (!project) return [];
+
+  const versions = await prisma.projectVersion.findMany({
+    where: { projectId },
+    orderBy: { createdAt: 'desc' }
+  });
+
+  return versions.map((v) => ({
+    id: v.id,
+    label: v.label,
+    html: (v.blueprint as { html?: string })?.html ?? '',
+    createdAt: v.createdAt.toISOString()
+  }));
+}
