@@ -73,3 +73,65 @@ Instructions:
 
   return html;
 }
+export type GeneratedPageData = {
+  slug: string;
+  title: string;
+  html: string;
+};
+
+export async function generateMultiPageSite(input: BuilderInput): Promise<GeneratedPageData[]> {
+  const prompt = `You are an expert web designer. Generate a complete 3-page website based on this business information:
+
+Company: ${input.companyName}
+Goal: ${input.goal}
+Project type: ${input.projectType}
+Style: ${input.style}
+Primary color: ${input.color}
+Tagline: ${input.tagline}
+Audience: ${input.audience}
+Offer: ${input.offer}
+Primary action: ${input.primaryAction}
+Features: ${input.features.join(', ')}
+
+Generate exactly 3 pages: "home", "about", "contact".
+
+For each page, generate a complete, self-contained HTML page with inline <style> CSS.
+
+Requirements for all pages:
+- Include a navigation bar at the top with links to: Home (/), About (/about), Contact (/contact) — use these exact relative hrefs
+- Use the primary color (${input.color}) consistently across all pages
+- Make it modern, ${input.style.toLowerCase()} style, fully responsive
+- Do not use external images, use CSS gradients/shapes for visual interest
+- Do not include any JavaScript
+- Home page: hero section, features section, footer
+- About page: company story, mission, team placeholder section, footer
+- Contact page: contact info, a visual (non-functional) contact form, footer
+
+Respond with ONLY a valid JSON array, no markdown code fences, no explanation, in this exact format:
+[
+  {"slug": "home", "title": "Home", "html": "<!DOCTYPE html>..."},
+  {"slug": "about", "title": "About", "html": "<!DOCTYPE html>..."},
+  {"slug": "contact", "title": "Contact", "html": "<!DOCTYPE html>..."}
+]
+
+Make sure the HTML strings are properly JSON-escaped.`;
+
+  const message = await anthropic.messages.create({
+    model: 'claude-sonnet-4-5',
+    max_tokens: 16000,
+    messages: [{ role: 'user', content: prompt }]
+  });
+
+  const textBlock = message.content.find((block) => block.type === 'text');
+  let text = textBlock && textBlock.type === 'text' ? textBlock.text : '[]';
+
+  text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+
+  try {
+    const pages = JSON.parse(text) as GeneratedPageData[];
+    return pages;
+  } catch (error) {
+    console.error('Failed to parse multi-page JSON:', error);
+    throw new Error('Failed to generate multi-page site');
+  }
+}

@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { Nav } from '@/components/Nav';
 import { ProjectPreview } from '@/components/projects/ProjectPreview';
 import { AIPagePreview } from '@/components/projects/AIPagePreview';
+import { MultiPagePreview } from '@/components/projects/MultiPagePreview';
 import { Card } from '@/components/ui/Card';
 import { getProject } from '@/lib/projects-store';
 
@@ -25,6 +26,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           <h1 className="mt-2 text-5xl font-black">{project.name}</h1>
           <div className="mt-8"><ProjectPreview blueprint={project.blueprint} color={project.input.color} /></div>
           <div className="mt-8"><AIPagePreview projectId={project.id} initialHtml={project.generatedHtml} /></div>
+          <div className="mt-8"><MultiPagePreview projectId={project.id} /></div>
         </div>
         <aside className="space-y-5">
           <Card><h2 className="text-xl font-bold">Actions</h2><div className="mt-4 grid gap-3"><a href={`/builder?edit=${project.id}`} className="block rounded-full bg-brand px-4 py-3 text-center font-bold">Re-edit project</a><a href={`/api/projects/${project.id}/export`} className="block rounded-full bg-white px-4 py-3 text-center font-bold text-ink">Export code</a><a href={`/preview/${project.id}`} target="_blank" rel="noopener noreferrer" className="block rounded-full bg-aqua px-4 py-3 text-center font-bold text-ink">View live preview</a></div></Card>

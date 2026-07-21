@@ -144,3 +144,41 @@ export async function listProjectVersions(projectId: string, userId: string) {
     createdAt: v.createdAt.toISOString()
   }));
 }
+export async function saveGeneratedPages(
+  projectId: string,
+  pages: { slug: string; title: string; html: string }[],
+  userId: string
+) {
+  const existing = await prisma.project.findFirst({ where: { id: projectId, userId } });
+  if (!existing) return null;
+
+  await prisma.generatedPage.deleteMany({ where: { projectId } });
+
+  await prisma.generatedPage.createMany({
+    data: pages.map((page, index) => ({
+      projectId,
+      slug: page.slug,
+      title: page.title,
+      html: page.html,
+      order: index
+    }))
+  });
+
+  return prisma.generatedPage.findMany({
+    where: { projectId },
+    orderBy: { order: 'asc' }
+  });
+}
+
+export async function listGeneratedPages(projectId: string) {
+  return prisma.generatedPage.findMany({
+    where: { projectId },
+    orderBy: { order: 'asc' }
+  });
+}
+
+export async function getGeneratedPage(projectId: string, slug: string) {
+  return prisma.generatedPage.findUnique({
+    where: { projectId_slug: { projectId, slug } }
+  });
+}
