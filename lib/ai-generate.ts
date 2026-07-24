@@ -80,7 +80,7 @@ export type GeneratedPageData = {
 };
 
 export async function generateMultiPageSite(input: BuilderInput): Promise<GeneratedPageData[]> {
-  const prompt = `You are an expert web designer. Generate a complete 3-page website based on this business information:
+  const prompt = `You are an expert web designer. Generate a complete 8-page website based on this business information:
 
 Company: ${input.companyName}
 Goal: ${input.goal}
@@ -93,35 +93,46 @@ Offer: ${input.offer}
 Primary action: ${input.primaryAction}
 Features: ${input.features.join(', ')}
 
-Generate exactly 3 pages: "home", "about", "contact".
+Generate exactly 8 pages: "home", "about", "contact", "pricing", "services", "faq", "team", "testimonials".
 
 For each page, generate a complete, self-contained HTML page with inline <style> CSS.
 
 Requirements for all pages:
-- Include a navigation bar at the top with links to: Home (/), About (/about), Contact (/contact) — use these exact relative hrefs
+- Include a navigation bar at the top with links to all 8 pages using these exact relative hrefs: / (home), /about, /contact, /pricing, /services, /faq, /team, /testimonials
 - Use the primary color (${input.color}) consistently across all pages
 - Make it modern, ${input.style.toLowerCase()} style, fully responsive
 - Do not use external images, use CSS gradients/shapes for visual interest
 - Do not include any JavaScript
 - Home page: hero section, features section, footer
-- About page: company story, mission, team placeholder section, footer
+- About page: company story, mission, footer
 - Contact page: contact info, a visual (non-functional) contact form, footer
+- Pricing page: 3 pricing tiers with features comparison, footer
+- Services page: list of services offered with descriptions, footer
+- FAQ page: 6-8 common questions with answers in an accordion-style layout, footer
+- Team page: 3-4 team member placeholder cards with name, role, short bio, footer
+- Testimonials page: 4-6 customer testimonial quotes in cards, footer
 
 Respond with ONLY a valid JSON array, no markdown code fences, no explanation, in this exact format:
 [
   {"slug": "home", "title": "Home", "html": "<!DOCTYPE html>..."},
   {"slug": "about", "title": "About", "html": "<!DOCTYPE html>..."},
-  {"slug": "contact", "title": "Contact", "html": "<!DOCTYPE html>..."}
+  {"slug": "contact", "title": "Contact", "html": "<!DOCTYPE html>..."},
+  {"slug": "pricing", "title": "Pricing", "html": "<!DOCTYPE html>..."},
+  {"slug": "services", "title": "Services", "html": "<!DOCTYPE html>..."},
+  {"slug": "faq", "title": "FAQ", "html": "<!DOCTYPE html>..."},
+  {"slug": "team", "title": "Team", "html": "<!DOCTYPE html>..."},
+  {"slug": "testimonials", "title": "Testimonials", "html": "<!DOCTYPE html>..."}
 ]
 
 Make sure the HTML strings are properly JSON-escaped.`;
 
-  const message = await anthropic.messages.create({
+  const stream = anthropic.messages.stream({
     model: 'claude-sonnet-4-5',
-    max_tokens: 16000,
+    max_tokens: 32000,
     messages: [{ role: 'user', content: prompt }]
   });
 
+  const message = await stream.finalMessage();
   const textBlock = message.content.find((block) => block.type === 'text');
   let text = textBlock && textBlock.type === 'text' ? textBlock.text : '[]';
 

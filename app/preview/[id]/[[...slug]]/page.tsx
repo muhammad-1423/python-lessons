@@ -2,10 +2,13 @@ import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/db';
 
 function fixLinks(html: string, projectId: string): string {
-  return html
-    .replace(/href="\/about"/g, `href="/preview/${projectId}/about"`)
-    .replace(/href="\/contact"/g, `href="/preview/${projectId}/contact"`)
-    .replace(/href="\/"/g, `href="/preview/${projectId}"`);
+  const slugs = ['about', 'contact', 'pricing', 'services', 'faq', 'team', 'testimonials'];
+  let result = html;
+  for (const slug of slugs) {
+    result = result.replaceAll(`href="/${slug}"`, `href="/preview/${projectId}/${slug}"`);
+  }
+  result = result.replaceAll('href="/"', `href="/preview/${projectId}"`);
+  return result;
 }
 
 export default async function PreviewPage({
